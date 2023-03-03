@@ -1,18 +1,17 @@
-const express = require("express"),
-  app = express(),
-  authRoute = require("./routes/authRoute"),
-  postRoute = require("./routes/postRoute"),
-  auth = require('./middleware/auth.js')(),
-  mongoose = require("mongoose"),
-  passport = require("passport"),
-  localStrategy = require("passport-local"),
-  User = require("./models/user"),
-  bodyParser = require("body-parser");
+const express = require("express");
+const authRoute = require("./routes/authRoute");
+const chatRoute = require("./routes/chatRoute");
+const auth = require("./middleware/auth.js")();
+const mongoose = require("mongoose");
+const passport = require("passport");
+const localStrategy = require("passport-local");
+const User = require("./models/user");
+const bodyParser = require("body-parser");
+const app = express();
 
-mongoose.connect("mongodb://localhost/sampledb", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+
+
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(auth.initialize());
@@ -24,8 +23,20 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 app.use(authRoute);
-app.use(postRoute);
+app.use(chatRoute);
 
-app.listen(3001, () => {
-  console.log("Server Started at 3001");
+mongoose.connect(
+  `mongodb+srv://mohamedabdelaziz:01282434860m@application-api.ctmzm.mongodb.net/chat-api?retryWrites=true&w=majority`,
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  }
+).then(()=>{
+  const server = app.listen(3001 ,()=>console.log("Server Started at 3001"));
+  const io = require('./socket').init(server);
+  
+  io.on("connection" ,socket =>{
+    console.log("client connect");
+  });
 });
+
